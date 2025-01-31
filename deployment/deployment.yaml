@@ -16,6 +16,9 @@ spec:
     spec:
       containers:
       - name: titanic
-        image: linogaliana/application:v0.0.92
+        image: linogaliana/application:v0.0.93 #<1>
         ports:
         - containerPort: 5000
+        env:
+          - name: MLFLOW_TRACKING_URI
+          value: https://user-lgaliana-mlflow.user.lab.sspcloud.fr #<2>
