@@ -22,3 +22,7 @@ spec:
         env:
           - name: MLFLOW_TRACKING_URI
             value: https://user-lgaliana-mlflow.user.lab.sspcloud.fr #<2>
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
