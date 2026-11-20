@@ -1,13 +1,28 @@
-# Exercices d'application du cours de "Mise en production de projets de data science" (ENSAE, voie data science)
+# application-deployment
 
-Point de départ du projet du cours de mise en production de l'ENSAE.
+Dépôt GitOps de l'API de prix au m² des logements (données DVF).
 
-Exercice fil rouge guidé sur https://ensae-reproductibilite.github.io/website/chapters/application.html
+- `deployment/` contient les manifestes Kubernetes de l'API ;
+- `application.yaml` est l'application ArgoCD qui surveille le dossier `deployment/` sur la branche `main`.
 
+Pour déployer une nouvelle version, changer le tag de l'image dans `deployment/deployment.yaml`
+(par exemple `<DOCKERHUB_USERNAME>/application:v0.0.3`), puis pousser le changement sur `main` :
+ArgoCD applique alors les manifestes.
 
+L'API lit son jeton dans le secret `api-jeton`, qui doit exister dans le namespace avant le déploiement :
 
-## Sources utilisées
+```bash
+kubectl create secret generic api-jeton --from-literal=JETON_API='mon_jeton'
+```
 
-Données DVF récupérées et simplifiées de https://www.data.gouv.fr/datasets/demandes-de-valeurs-foncieres 
-* Données carroyées Filosofi: https://www.data.gouv.fr/datasets/revenus-pauvrete-et-niveau-de-vie-donnees-carroyees-2019-et-2021-dispositif-fichier-localise-social-et-fiscal-filosofi
-* Données agrégées Filosofi récupérées depuis l'API Melodi de l'Insee
+L'API charge le modèle de production depuis MLflow (modèle `dvf`, alias `production`)
+au lieu de lire un fichier `model.skops`. Dans `deployment/deployment.yaml`, la variable
+`MLFLOW_TRACKING_URI` doit être remplacée par l'URL de votre propre serveur MLflow. Les
+identifiants de ce serveur sont lus dans le secret `mlflow-secrets`, qui doit exister
+dans le namespace avant le déploiement :
+
+```bash
+kubectl create secret generic mlflow-secrets \
+  --from-literal=MLFLOW_TRACKING_USERNAME="$MLFLOW_TRACKING_USERNAME" \
+  --from-literal=MLFLOW_TRACKING_PASSWORD="$MLFLOW_TRACKING_PASSWORD"
+```
